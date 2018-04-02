@@ -1,2 +1,2 @@
 # GBDX_tools
-Tools developed in python for use on the digitalglobe GBDX platform
+Tools developed in python notebooks for use on the digitalglobe GBDX platform

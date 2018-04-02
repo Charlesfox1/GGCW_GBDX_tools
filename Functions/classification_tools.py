@@ -1,4 +1,6 @@
 import numpy as np
+import gdal
+
 
 
 def create_mask_from_vector(vector_data_path, cols, rows, geo_transform,

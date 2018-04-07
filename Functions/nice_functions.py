@@ -218,7 +218,7 @@ def image_query_check(bbox_wkt, park_utm, buffer_size, multipolygon_type, projec
         # query = "(item_type:WV03_VNIR OR WV02 OR QB02 OR GE01)"
 
         query = "(item_type:WV03_VNIR OR WV02)"
-        query += " AND NOT item_type:IDAHOImage AND item_type:DigitalGlobeProduct"   
+        query += "AND NOT item_type:IDAHOImage AND item_type:DigitalGlobeProduct"   
         results = gbdx.vectors.query(bbox_wkt, query)
 
         # calculate the overlap between image and park
@@ -238,7 +238,7 @@ def image_query_check(bbox_wkt, park_utm, buffer_size, multipolygon_type, projec
 
 
         # create dataframe for image metadata
-        images_df = pd.DataFrame(columns=['id','month','year','type','resolution','cloud cover','overlap','check'])
+        images_df = pd.DataFrame(columns=['id','month','year','type','cloud cover','overlap','check'])
 
         # loop over all found images and load metadata in dataframe
         # also perform a test to find the right images
@@ -262,10 +262,10 @@ def image_query_check(bbox_wkt, park_utm, buffer_size, multipolygon_type, projec
 
 
             images_df = images_df.append({'id': props['attributes']['catalogID'],'month':props['item_date'][5:7],'year':props['item_date'][0:4],
-                           'type':props['item_type'][1],'resolution':props['attributes']['resolution_dbl'],
+                           'type':props['item_type'][1],
                            'cloud cover':props['attributes']['cloudCover_int'],'overlap': fraction_overlap,
                             # perform check on, cloud cover, month (summer), and overlap 
-                            'check':props['attributes']['cloudCover_int'] < 10 and int(props['item_date'][5:7]) >= 5 and int(props['item_date'][5:7]) <= 11 and 
+                            'check':props['attributes']['cloudCover_int'] < 2 and int(props['item_date'][5:7]) >= 5 and int(props['item_date'][5:7]) <= 11 and 
                            fraction_overlap >.9},ignore_index=True)
 
 

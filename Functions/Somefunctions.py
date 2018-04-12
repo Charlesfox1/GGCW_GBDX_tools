@@ -23,15 +23,17 @@ gbdx = Interface()
 def listToStringWithoutBrackets(list1):
     return str(list1).replace('[','').replace(']','')
 
-#  This funtion resizes images with Skimage so they are the same size, i resamples the largest to a courser resolution.
+#  This funtion resizes images with Skimage so they are the same size, i resamples the largest to a courser resolution. Also returns a number of the image that was reshaped because it will be transformed into an array and does not hold all information anymore.
 def reziseimages(image1,image2):
    
-    #first lets see which of the images is the smallest (lowest Resolution)
+    #first lets see which of the images is the largest (highest Resolution) and then resize that one
     if image1.shape[2] > image2.shape[2]:
         image1 = resize(image1.astype(np.float), image2.shape, order=1, mode='constant', clip=True)
+        reshaped = 1
     else:
         image2 = resize(image2.astype(np.float), image1.shape, order=1, mode='constant', clip=True)
-    return image1,image2
+        reshaped = 2
+    return image1,image2, reshaped
 
 # input is a shapely polygon of the park of interest and output is two dataframes with listed images and the most recent image for Summer and Winter with least amount of cloud cover
 def get_SumWin(park_shape,UTM_EPSG_code):
@@ -89,18 +91,18 @@ def get_SumWin(park_shape,UTM_EPSG_code):
             fraction_overlap = area(ra, rb)/total_area
     
     
-        images_df = images_df.append({'id': props['attributes']['catalogID'],'month':props['item_date'][5:7],'year':props['item_date'][0:4],'type':props['item_type'][1],'resolution':props['attributes']['resolution_dbl'],'cloud cover':props['attributes']['cloudCover_int'],'overlap': fraction_overlap,'check':props['attributes']['cloudCover_int'] < 2 and int(props['item_date'][5:7]) >= 5 and int(props['item_date'][5:7]) <= 8 and fraction_overlap >.9},ignore_index=True)
+        images_df = images_df.append({'id': props['attributes']['catalogID'],'month':props['item_date'][5:7],'year':props['item_date'][0:4],'type':props['item_type'][1],'resolution':props['attributes']['resolution_dbl'],'cloud cover':props['attributes']['cloudCover_int'],'overlap': fraction_overlap,'check':props['attributes']['cloudCover_int'] < 100 and int(props['item_date'][5:7]) >= 5 and int(props['item_date'][5:7]) <= 8 and fraction_overlap >.9},ignore_index=True)
 
-        images_df2 = images_df2.append({'id': props['attributes']['catalogID'],'month':props['item_date'][5:7],'year':props['item_date'][0:4],'type':props['item_type'][1],'resolution':props['attributes']['resolution_dbl'],'cloud cover':props['attributes']['cloudCover_int'],'overlap': fraction_overlap,'check':props['attributes']['cloudCover_int'] <2 and int(props['item_date'][5:7]) >= 1 and int(props['item_date'][5:7]) <= 2 and fraction_overlap >.9},ignore_index=True)
+        images_df2 = images_df2.append({'id': props['attributes']['catalogID'],'month':props['item_date'][5:7],'year':props['item_date'][0:4],'type':props['item_type'][1],'resolution':props['attributes']['resolution_dbl'],'cloud cover':props['attributes']['cloudCover_int'],'overlap': fraction_overlap,'check':props['attributes']['cloudCover_int'] < 100 and int(props['item_date'][5:7]) >= 1 and int(props['item_date'][5:7]) <= 2 and fraction_overlap >.9},ignore_index=True)
 
     
     selections = images_df.loc[images_df.check == True].reset_index()
     selectionw = images_df2.loc[images_df2.check == True].reset_index()
 
-    selections = selections.groupby(['id'],sort=['year','month'],as_index=False).first().sort_values(['year','month'], ascending=False).reset_index()
+    selections = selections.groupby(['id'],sort=['year','month','cloud cover'],as_index=False).first().sort_values(['year','month'], ascending=False).reset_index()
     del selections['level_0'], selections['index']
 
-    selectionw = selectionw.groupby(['id'],sort=['year','month'],as_index=False).first().sort_values(['year','month'], ascending=False).reset_index()
+    selectionw = selectionw.groupby(['id'],sort=['year','month','cloud cover'],as_index=False).first().sort_values(['year','month'], ascending=False).reset_index()
     del selectionw['level_0'], selectionw['index']
     
 # First check if images are not defective and then fetch them
@@ -111,36 +113,51 @@ def get_SumWin(park_shape,UTM_EPSG_code):
     iS=0
     iW=0
     
-    while imagestatus =='unknown':
-        # set catalog id from selection
-        catalog_id_s = env.inputs.get('catalog_id', selections.id[iS])
-        catalog_id_w = env.inputs.get('catalog_id', selectionw.id[iW])    
-
-    # collect images
-        images = CatalogImage(catalog_id_s, band_type="MS", bbox=map(float, bbox.split(",")),proj=UTM_EPSG_code
-                     ,pansharpen= False)
-        imagew = CatalogImage(catalog_id_w, band_type="MS", bbox=map(float, bbox.split(",")),proj=UTM_EPSG_code
-                     ,pansharpen= False)
-    # calculate mean of coastal band to see if image is defective
-        mean_coastals = images[1,:,:].read().mean() 
-        mean_coastalw = imagew[1,:,:].read().mean()
-
-    # use image if not defective, otherwise 
-        if mean_coastals > 200:
-            pass
-        else:
-            iS=iS+1
-        
-        if mean_coastalw > 200:
-            pass
-        else:
-            iW=iW+1
-        
-        if mean_coastalw > 200 and mean_coastals > 200:
-            imagestatus = 'fine'
-           
     
-    return selections,selectionw,images,imagew
+    
+    if (selections.empty | selectionw.empty):
+        
+        
+        error = 0    
+    
+        return error, error, error, error 
+    
+    
+    else:
+        
+    
+    
+    
+        while imagestatus =='unknown':
+            # set catalog id from selection
+            catalog_id_s = env.inputs.get('catalog_id', selections.id[iS])
+            catalog_id_w = env.inputs.get('catalog_id', selectionw.id[iW])    
+
+        # collect images
+            images = CatalogImage(catalog_id_s, band_type="MS", bbox=map(float, bbox.split(",")),proj=UTM_EPSG_code
+                         ,pansharpen= False)
+            imagew = CatalogImage(catalog_id_w, band_type="MS", bbox=map(float, bbox.split(",")),proj=UTM_EPSG_code
+                         ,pansharpen= False)
+        # calculate mean of coastal band to see if image is defective
+            mean_coastals = images[1,:,:].read().mean() 
+            mean_coastalw = imagew[1,:,:].read().mean()
+
+        # use image if not defective, otherwise 
+            if mean_coastals > 200:
+                pass
+            else:
+                iS=iS+1
+
+            if mean_coastalw > 200:
+                pass
+            else:
+                iW=iW+1
+
+            if mean_coastalw > 200 and mean_coastals > 200:
+                imagestatus = 'fine'
+
+
+        return selections,selectionw,images,imagew
 
 # Calculate the difference in NDVI based on summer and winter image. Also returns a masked ndvi map for the summer image
 def NDVIdiff(imagesummer,imagewinter,parkshape_utm):
@@ -208,4 +225,6 @@ def NDVIdiff(imagesummer,imagewinter,parkshape_utm):
     meandiff=ndvimd.mean()
     
     return meansummer,meanwinter, meandiff, ndvims
+
+
     

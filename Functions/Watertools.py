@@ -133,34 +133,34 @@ def Wateredge(Water,cellsize, buffer):
 # first calculate number of cells needed for buffer based on cell size and desired buffer (20m)
     buf= int(buffer/cellsize)
     kernel = np.ones((buf, buf))
-
+    
+    result = np.int64(convolve2d(borders, kernel, mode='same') > 0)
     # Delete the water part so only the riperian zone is left
     riparian=result-Water
     
-    return riperian
+    return riparian
 
-def Riperianveg(riparian,ndvi):
+def Riparianveg(riparian,ndvi):
     # convert image to array and set as mask
     mask = np.array(riparian)
 
-    # create boolean mask
+    
+# create boolean mask
     mask = mask == 1
 
-    # copy layers for classification
-    ndvi2 = ndvi
-
-    # flip image and EVI to allign with polygon based mask
-    ndvi2 = np.flipud(ndvi2)
+# copy layers for classification
+    ndvi2 = copy.copy(ndvi)
 
 
-    # apply mask to test image
-    ndvi2[ndvi >= 0.3] = 2
-    ndvi2[ndvi < 0.3] = 1
+# apply mask to test image
+    ndvi2[ndvi2 >= 0.3] = 2
+    ndvi2[ndvi2 < 0.3] = 1
     ndvi2[mask == 0] = 0
+    maskcount = 1*mask
+    
+    vegetation = sum(sum(sum([ndvi2 == 2])))
+    total = sum(sum(maskcount))
 
-    values, counts = np.unique(ndvi2, return_counts=True)    
-    total= counts[1] + counts[2]
-    vegetation = counts[2]
     percvegcover = np.divide(vegetation*100,total)
     
     return percvegcover

@@ -1,4 +1,6 @@
 # GGCW_toolbox
+[![licence](https://img.shields.io/badge/Licence-GPL%203.0-green.svg)](https://github.com/krakchris/GGCW_GBDX_tools/blob/master/LICENSE)
+
 Toolbox for python that can be used on the Digital Globe GBDX platform
 
 This toolbox was developed during the Digital Globe GBDX for Sustainability Challange.

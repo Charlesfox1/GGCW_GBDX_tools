@@ -32,6 +32,17 @@ This folder contains the functions used within the main script.
 **Somefunctions.py**          -   This function is a group of fuctions used to query and load imagery for the calculation of NDVI values within                               each park for summer and winter 
 
 
+
+
+​```sequence
+Alice->Bob: Hello Bob, how are you?
+Note right of Bob: Bob thinks
+Bob-->Alice: I am good thanks!
+​```
+
+
+
+
 **Watertools.py**             -    This function is a group of functions used to identify and deliniate water objects within parks and find the 
                                riparian zone around these water bodies.
 

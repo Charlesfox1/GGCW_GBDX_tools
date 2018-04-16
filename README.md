@@ -14,7 +14,7 @@ Tools that were developed were used on jupyter notebooks on the [GBDX platform](
 
 The toolbox contians three notebooks that run trough a approach using Openstreetmap polygons as training data for sklearn classifiers. 
 
-   <center>![alt text][flowchart]</center>
+![alt text][flowchart]
 
 [flowchart]: https://github.com/krakchris/GGCW_GBDX_tools/blob/master/GGCW_tools_flowchart.PNG "GGCW_GBDX flowchart"
 

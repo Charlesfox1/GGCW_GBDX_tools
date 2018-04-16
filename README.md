@@ -7,8 +7,14 @@ This toolbox was developed during the Digital Globe GBDX for Sustainability Chal
 Global Green City Watch aimed at using Very High Resolution Imagery for the assessment of quality green space in urban environments.
 Tools that were developed were used on jupyter notebooks on the [GBDX platform](https://notebooks.geobigdata.io) but can also be executed on regular Python installations when the GBDX API is installed.
 
+The toolbox contians three notebooks that run trough a approach using Openstreetmap polygons as training data for sklearn classifiers. 
+
+![alt text][flowchart]
+
+[flowchart]: https://github.com/krakchris/GGCW_GBDX_tools/blob/master/GGCW_tools_flowchart.PNG "GGCW_GBDX flowchart"
+
 ## Website
-For actual information on the status of the project please visit [Our Website](http://globalgreencitywatch.org)
+For actual information on the status of the project please visit [Our Website](http://www.globalgreencitywatch.org)
 
 ## Folder Structure
 

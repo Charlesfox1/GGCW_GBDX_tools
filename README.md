@@ -34,9 +34,6 @@ This folder contains the functions used within the main script.
 
 **get_OSM_Amenities.py**      -   This function queries the gbdx.vector service for OSM objects within each selected park. It returns a 
                               dataframe with the available amenities within the park.
-``` 
-geojson = gbdx.vectors.query(park_wkt, query="ingest_source:OSM AND item_type:*", index="vector-osm-*",count=1E6)
-```
 
 **get_OSM_polygons.py**       -   This function queries the gbdx.vector service for OSM objects within each selected city. It returns  
                               shapes for all the parks within the city bounding box.

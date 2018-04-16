@@ -44,12 +44,3 @@ This folder contains the main script that was used for the calculation
 This folder contains the wkt files containing the outline of the city borders for Tokyo, Rio de Janeiro, Amsterdam and Houston
 
 
-
-​```sequence
-Alice->Bob: Hello Bob, how are you?
-Note right of Bob: Bob thinks
-Bob-->Alice: I am good thanks!
-​```
-
-
-

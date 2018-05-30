@@ -1,4 +1,3 @@
-import googlemaps
 from functools import partial
 import pyproj
 
@@ -22,7 +21,7 @@ def largest(features, n=100):
     for f in features:
         s = shape(f['geometry'])
         areas.append((s.area, f))
-                 
+
     topN = [r for r in reversed(sorted(areas, key=lambda k: k[0]))][0:n]
     return zip(*topN)
 
@@ -55,19 +54,6 @@ def vectors_to_raster(file_paths, rows, cols, geo_transform, projection):
         labeled_pixels += band.ReadAsArray()
         ds = None
     return labeled_pixelsh
-
-def get_city_bounding_box(city,API_key = 'AIzaSyBMSEvcGj1GoyhYqf9qqvMItZVTjgsmhOc'):
-    gmaps = googlemaps.Client(key=API_key) # API has limited requests
-    # Geocoding the address
-    geocode_result = gmaps.geocode(city)
-    # get google bounding box for city
-    lat_max = geocode_result[0]['geometry']['bounds']['northeast']['lat']
-    lon_max = geocode_result[0]['geometry']['bounds']['northeast']['lng']
-    lat_min = geocode_result[0]['geometry']['bounds']['southwest']['lat']
-    lon_min = geocode_result[0]['geometry']['bounds']['southwest']['lng']
-    bbox = [lon_min,lat_min,lon_max,lat_max]
-    return bbox
-
 
 
 def get_projections_and_UTM(bbox_city):
@@ -104,8 +90,8 @@ def get_OSM_polygons(bbox_city,type_query = 'park',count = 1e4):
 
     if bbox_city == 0:
         return 'no bbox'
-    
-    
+
+
 
     # convert the bounding box into a well-known text format
     bbox_wkt = box(*bbox_city).wkt
@@ -114,55 +100,55 @@ def get_OSM_polygons(bbox_city,type_query = 'park',count = 1e4):
     # for grass/forest use: AND attributes.landuse:grass or forest
     # for footway use: AND attributes.highway:footway
     # for park use: item_type:Park
-    
+    #item_type:Park
     if type_query == 'park':
 
-        query = "ingest_source:OSM AND item_type:Park AND geom_type:Polygon "
-    
+        query = "ingest_source:OSM AND attributes.leisure:park AND geom_type:Polygon "
+
     elif type_query == 'grass':
 
-        query = "ingest_source:OSM AND attributes.landuse:grass AND geom_type:Polygon "
+        query = "ingest_source:OSM AND (attributes.landuse:grass OR attributes.natural:grassland OR attributes.landuse:meadow) AND geom_type:Polygon "
 
     elif type_query == 'forest':
-    
-        query = "ingest_source:OSM AND attributes.landuse:forest AND geom_type:Polygon "
-    
+
+        query = "ingest_source:OSM AND (attributes.landuse:forest OR attributes.natural:wood) AND geom_type:Polygon "
+
     elif type_query == 'water':
-    
+
         query = "ingest_source:OSM AND attributes.natural:water AND geom_type:Polygon "
-        
+
     elif type_query == 'footway':
-    
+
         query = "ingest_source:OSM AND attributes.highway:footway AND geom_type:Polygon "
-        
+
     elif type_query == 'building':
-    
+
         query = "ingest_source:OSM AND item_type:Building AND geom_type:Polygon "
-        
+
     else :
-         
+
         return 'wrong type_query'
-    
+
     # query the gbdx.vectors
- 
+
     geojson_obj = gbdx.vectors.query(bbox_wkt, query= query , index="vector-osm-*", count = count)
-    
+
     return geojson_obj
-    
-    
-    
+
+
+
 def geojson_variable_check(geojson_obj,project_utm,min_size = 1):
 
     # create dataframe to save all data
     df = pd.DataFrame(columns=['id','OSM_id','item_type','name','geom_type','area','check'])
 
-    # Convert geojson from OSM to shapely polygons 
+    # Convert geojson from OSM to shapely polygons
     geom_list = []
     for geojson in geojson_obj:
         geom = shape(geojson['geometry'])
         geom_list.append(geom)
 
-    # Loop over all polygons and load information to dataframe 
+    # Loop over all polygons and load information to dataframe
     i = 0;
     for r in geojson_obj:
         # get properties
@@ -186,28 +172,28 @@ def geojson_variable_check(geojson_obj,project_utm,min_size = 1):
                         'check':geom_type == u'Polygon' and area_obj > min_size},ignore_index=True) #set test for desirable parks
 
         i = i + 1
-    
-    
-     
-        
-    # get indices of all parks that pass the test set above    
-    list_obj = df.loc[df.check == True]['id'];
-    
-    final_list = df.loc[df.check == True].reset_index() #.sort_values(by=['area'], ascending = False).reset_index()
-      
 
-        
+
+
+
+    # get indices of all parks that pass the test set above
+    list_obj = df.loc[df.check == True]['id'];
+
+    final_list = df.loc[df.check == True].reset_index() #.sort_values(by=['area'], ascending = False).reset_index()
+
+
+
     return final_list, geom_list
 
-def image_query_check(bbox_wkt, park_utm, buffer_size, multipolygon_type, project_wgs,x_wgs,y_wgs):
+def image_query_check(bbox_wkt, park_utm, buffer_size, project_wgs,x_wgs,y_wgs):
 
-    
+
     if (park_utm.buffer(buffer_size).exterior == None):
-       
+
         message = "error"
-        
+
         return message
-    
+
     else:
 
 
@@ -218,7 +204,7 @@ def image_query_check(bbox_wkt, park_utm, buffer_size, multipolygon_type, projec
         # query = "(item_type:WV03_VNIR OR WV02 OR QB02 OR GE01)"
 
         query = "(item_type:WV03_VNIR OR WV02)"
-        query += "AND NOT item_type:IDAHOImage AND item_type:DigitalGlobeProduct"   
+        query += "AND NOT item_type:IDAHOImage AND item_type:DigitalGlobeProduct"
         results = gbdx.vectors.query(bbox_wkt, query)
 
         # calculate the overlap between image and park
@@ -227,7 +213,7 @@ def image_query_check(bbox_wkt, park_utm, buffer_size, multipolygon_type, projec
 
         ra = Rectangle(min(x_wgs), min(y_wgs), max(x_wgs), max(y_wgs)) # set wgs park area in rectangle
 
-        # function for calculating overlap 
+        # function for calculating overlap
         def area_overlap(a, b):  # returns None if rectangles don't intersect
             dx = min(a.xmax, b.xmax) - max(a.xmin, b.xmin)
             dy = min(a.ymax, b.ymax) - max(a.ymin, b.ymin)
@@ -264,20 +250,17 @@ def image_query_check(bbox_wkt, park_utm, buffer_size, multipolygon_type, projec
             images_df = images_df.append({'id': props['attributes']['catalogID'],'month':props['item_date'][5:7],'year':props['item_date'][0:4],
                            'type':props['item_type'][1],
                            'cloud cover':props['attributes']['cloudCover_int'],'overlap': fraction_overlap,
-                            # perform check on, cloud cover, month (summer), and overlap 
-                            'check':props['attributes']['cloudCover_int'] < 2 and int(props['item_date'][5:7]) >= 5 and int(props['item_date'][5:7]) <= 11 and 
+                            # perform check on, cloud cover, month (summer), and overlap
+                            'check':props['attributes']['cloudCover_int'] < 5 and int(props['item_date'][5:7]) >= 5 and int(props['item_date'][5:7]) <= 11 and
                            fraction_overlap >.9},ignore_index=True)
 
 
         # select only the images that survive the test
         selection_images = images_df.loc[images_df.check == True].reset_index()
 
-        # group by image id because 
+        # group by image id because
         selection_images =  selection_images.groupby(['id'],sort=['year','month'],as_index=False).first().sort_values(['year','month'], ascending=False).reset_index()
-        
-        
-        
+
+
+
         return selection_images
-    
-
-

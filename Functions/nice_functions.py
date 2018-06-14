@@ -107,7 +107,7 @@ def get_OSM_polygons(bbox_city,type_query = 'park',count = 1e4):
 
     elif type_query == 'grass':
 
-        query = "ingest_source:OSM AND (attributes.landuse:grass OR attributes.natural:grassland OR attributes.landuse:meadow) AND geom_type:Polygon "
+        query = "ingest_source:OSM AND (attributes.landuse:grass OR attributes.natural:grassland) AND geom_type:Polygon "
 
     elif type_query == 'forest':
 
